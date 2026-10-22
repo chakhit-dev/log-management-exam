@@ -37,6 +37,30 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app-network
+
+  # 3. pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin_web
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "${PGADMIN_DEFAULT_EMAIL}"
+      PGADMIN_DEFAULT_PASSWORD: "${PGADMIN_DEFAULT_PASSWORD}"
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -66,6 +90,7 @@ volumes:
   postgres_data:
   clickhouse_data:
   clickhouse_logs:
+  pgadmin_data:
 
 networks:
   app-network:
