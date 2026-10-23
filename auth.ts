@@ -35,7 +35,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           credentials.password,
           user.password_hash
         );
-
+        
         if (!validPassword) return null;
 
         return {
