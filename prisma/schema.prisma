@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum system_role {
+  SuperAdmin
+  User
+}
+
+enum tenant_role {
+  TenantAdmin
+  Viewer
+}
+
+model tenants {
+  id         BigInt               @id @default(autoincrement()) @db.BigInt
+  name       String               @db.VarChar(100)
+  created_at DateTime             @default(now()) @db.Timestamptz(6)
+  memberships tenant_memberships[]
+}
+
+model users {
+  id            BigInt               @id @default(autoincrement()) @db.BigInt
+  username      String               @unique @db.VarChar(50)
+  email         String               @unique @db.VarChar(255)
+  password_hash String               @db.Text
+  system_role   system_role          @default(User)
+  created_at    DateTime             @default(now()) @db.Timestamptz(6)
+  memberships   tenant_memberships[]
+}
+
+model tenant_memberships {
+  tenant_id  BigInt      @db.BigInt
+  user_id    BigInt      @db.BigInt
+  role       tenant_role @default(Viewer)
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+
+  tenant tenants @relation(fields: [tenant_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user   users   @relation(fields: [user_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@id([tenant_id, user_id])
+}
