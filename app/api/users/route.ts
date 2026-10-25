@@ -8,7 +8,7 @@ interface user {
     password: string;
 }
 
-export async function POST(req: NextRequest, res: NextResponse) {
+export async function POST(req: NextRequest) {
 
     try {
         const body: user = await req.json();
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             },
         });
 
-        return NextResponse.json(user)
+        return NextResponse.json(user, {status:200})
         
     } catch (error) {
         return NextResponse.json(error)
