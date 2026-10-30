@@ -1,7 +1,8 @@
 "use client"
 
-import { BookOpen, ChartColumnBig, FolderOpen, LayoutDashboard, LogOut, Settings, User, Users } from 'lucide-react';
-import { useSession } from 'next-auth/react';
+import { BookOpen, ChartColumnBig, Folder, FolderOpen, LayoutDashboard, LogOut, Settings, User, Users } from 'lucide-react';
+import { signIn, signOut, useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function DashNav() {
     const { data: session, status } = useSession();
@@ -13,18 +14,31 @@ export default function DashNav() {
                     <div className='font-semibold text-slate-800 text-center'>Log Management</div>
                 </div>
 
-                <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all font-medium'>
+                {/* <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all font-medium'>
                     <LayoutDashboard size={16} />
                     <div className='mt-0.5'>Dashboard</div>
-                </div>
+                </div> */}
+
+                <Link className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all font-medium' href="/dashboard">
+                    <LayoutDashboard size={16} />
+                    <div className='mt-0.5'>Dashboard</div>
+                </Link>
+
                 {/* <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all'>
                     <ChartColumnBig size={16} />
                     <div className='mt-0.5'>Analysis</div>
                 </div> */}
-                <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all'>
+
+                {/* <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all'>
                     <FolderOpen size={16} />
                     <div className='mt-0.5'>Logs</div>
-                </div>
+                </div> */}
+
+                <Link className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all font-medium' href="/logs">
+                    <Folder size={16} />
+                    <div className='mt-0.5'>Logs</div>
+                </Link>
+
                 {/* <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all'>
                     <User size={16} />
                     <div className='mt-0.5'>Users</div>
@@ -50,11 +64,11 @@ export default function DashNav() {
                             C
                         </div>
                         <div>
-                            <div className='text-xs font-medium text-slate-800'>Chakhit</div>
-                            <div className='text-[10px] text-slate-400'>admin@system.com</div>
+                            <div className='text-xs font-medium text-slate-800'>{session?.user.username}</div>
+                            <div className='text-[10px] text-slate-400'>{session?.user.email}</div>
                         </div>
                     </div>
-                    <LogOut size={16} className='text-slate-400 hover:text-rose-600 transition-colors' />
+                    <LogOut onClick={() => signOut()} size={16} className='text-slate-400 hover:text-rose-600 transition-colors' />
                 </div>
             </div>
         </div>

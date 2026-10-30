@@ -31,7 +31,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ tena
             format: 'JSONEachRow',
         })
 
-        // แปลงผลลัพธ์เป็น JSON ก่อนตอบกลับ
         const data = await result.json()
 
         return NextResponse.json(data)

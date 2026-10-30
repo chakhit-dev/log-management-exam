@@ -25,7 +25,7 @@ export async function getTimeLine(days: number): Promise<TimelineData[]> {
 
   const rows = await result.json<TimelineData>();
 
-  console.log(rows);
+  // console.log(rows);
 
   return rows;
 }

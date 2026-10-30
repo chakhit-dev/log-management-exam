@@ -6,11 +6,13 @@ import { PanelRightOpen } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { getUserMemberships, TenantMembership } from "../actions/getTenants";
+import { useRouter } from "next/navigation";
 
 export default function Logs() {
     const { data: session, status } = useSession();
     const [tenantData, setTenantData] = useState<TenantMembership[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         if (status === "loading") return;
@@ -41,6 +43,12 @@ export default function Logs() {
     //     console.log(tenantData)
     // }, [tenantData])
 
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.replace("/");
+        }
+    }, [status, router]);
+
     if (status === "loading" || loading) {
         return <p>Loading...</p>;
     }
@@ -66,7 +74,7 @@ export default function Logs() {
                 
                 <div className="p-4 w-full flex-1 min-h-0 flex flex-col gap-4">
                     
-                    <div className="grid grid-cols-3 gap-4 shrink-0">
+                    {/* <div className="grid grid-cols-3 gap-4 shrink-0">
                         <div className="rounded-lg border bg-white p-5">
                             <div className="flex items-start justify-between">
                                 <div>
@@ -133,7 +141,7 @@ export default function Logs() {
                                 <div>Active threats detected.</div>
                             </div>
                         </div>
-                    </div>
+                    </div> */}
 
                     <div className="flex-1 min-h-0">
                         <FullLogsTable data={tenantData} />

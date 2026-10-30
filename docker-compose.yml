@@ -95,6 +95,7 @@ services:
       - "514:514/udp"
     volumes:
       - ./vector.toml:/etc/vector/vector.toml:ro
+      - ./geoip/dbip-city-lite.mmdb:/etc/vector/dbip-city-lite.mmdb:ro
     command: ["--config", "/etc/vector/vector.toml"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -112,7 +113,6 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-      # --- ตั้งค่า SMTP สำหรับส่ง Email ผ่าน Resend ---
       - GF_SMTP_ENABLED=true
       - GF_SMTP_HOST=smtp.resend.com:465
       - GF_SMTP_USER=resend

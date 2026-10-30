@@ -30,7 +30,7 @@ export async function getTopEventType(): Promise<TopEventTypeData[]> {
 
   const rows = await result.json<TopEventTypeData>();
 
-  console.log(rows)
+  // console.log(rows)
 
   return rows;
 }

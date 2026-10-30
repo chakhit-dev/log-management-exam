@@ -56,6 +56,13 @@ export interface LogItem {
     event_type: string
     severity: string | number
     src_ip: string
+    // --- GeoIP Fields ---
+    src_country_code?: string
+    src_country_name?: string
+    src_city?: string
+    src_latitude?: number
+    src_longitude?: number
+    // --------------------
     user: string
     host: string
     status_code: number
@@ -75,7 +82,7 @@ export function FullLogsTable({ data }: TenantProps) {
 
     // console.log(session)
     // console.log(data)
-    console.log(logs)
+    // console.log(logs)
 
 
     const [memberEmail, setMemberEmail] = useState("")
@@ -540,7 +547,7 @@ export function FullLogsTable({ data }: TenantProps) {
 
                                         
 
-                                        <LogInspectDialog data={log} />
+                                        <LogInspectDialog data={log} index={index} />
                                     </td>
                                 </tr>
                             ))

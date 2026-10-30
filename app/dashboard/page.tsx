@@ -19,9 +19,11 @@ import { getTopIp, TopIPData } from "../actions/topip"
 import { getTopUser, TopUserData } from "../actions/topuser"
 import { getTopEventType, TopEventTypeData } from "../actions/eventtype"
 import { getTimeLine } from "../actions/tiimeline"
+import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
+    const router = useRouter();
     const alertCount = 2;
 
     const [metrics, setMetrics] = useState<EpsMetrics | null>(null);
@@ -32,7 +34,6 @@ export default function Dashboard() {
     const [topIP, setTopIP] = useState<TopIPData[] | null>(null);
     const [topUser, setTopUser] = useState<TopUserData[] | null>(null);
     const [topEventType, setTopEventType] = useState<TopEventTypeData[] | null>(null);
-    const [timeLine, setTimeLine] = useState<TopEventTypeData[] | null>(null);
 
     useEffect(() => {
         getEpsMetrics()
@@ -63,6 +64,12 @@ export default function Dashboard() {
             .catch(console.error)
         getTimeLine(7)
     }, []);
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.replace("/");
+        }
+    }, [status, router]);
 
     if (!session) {
         return <p>You are not authorized to view this page!</p>

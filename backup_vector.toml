@@ -1,0 +1,72 @@
+[sources.api_inbound]
+type = "http_server"
+address = "0.0.0.0:8080"
+path = "/"
+strict_path = false
+decoding.codec = "json"
+framing.method = "bytes"
+
+[transforms.process_logs]
+type = "remap"
+inputs = ["api_inbound"]
+source = '''
+raw_event = encode_json(.)
+
+.tenant = string(.tenant) ?? "default"
+.source = string(.source) ?? "api"
+.vendor = string(.vendor) ?? "custom"
+.product = string(.product) ?? "login_service"
+.event_type = string(.event_type) ?? "unknown"
+
+.severity = int(.severity) ?? 0
+.src_ip = string(.src_ip) ?? string(.ip) ?? "0.0.0.0"
+.user = string(.user) ?? "anonymous"
+.status_code = int(.status_code) ?? 200
+
+ts, err = parse_timestamp(.@timestamp, "%Y-%m-%dT%H:%M:%SZ")
+if err != null {
+    ts = now()
+}
+.@timestamp = ts
+.raw = raw_event
+'''
+
+[sources.network_syslog]
+type = "syslog"
+address = "0.0.0.0:514"
+mode = "udp"
+
+[transforms.process_network_logs]
+type = "remap"
+inputs = ["network_syslog"]
+source = '''
+.tenant = ""
+.source = "firewall"
+.vendor = parse_regex(.message, r'vendor=(?P<val>[^\s]+)').val ?? "cisco"
+.product = parse_regex(.message, r'product=(?P<prod>[^\s]+)').prod ?? "asa"
+.event_type = parse_regex(.message, r'action=(?P<act>[^\s]+)').act ?? "traffic_log"
+.severity = int(.severity) ?? 0
+.src_ip = parse_regex(.message, r'src=(?P<ip>[^\s]+)').ip ?? "0.0.0.0"
+.status_code = 200
+if is_null(.timestamp) {
+    .timestamp = now()
+}
+.@timestamp = .timestamp
+.raw = encode_json(.)
+'''
+
+[sinks.clickhouse_output]
+type = "clickhouse"
+inputs = ["process_logs", "process_network_logs"]
+endpoint = "http://host.docker.internal:8123" 
+database = "log_manage_db"
+table = "central_logs"
+auth.strategy = "basic"
+auth.user = "default"
+auth.password = "zz112233"
+healthcheck = false
+
+[sinks.debug_console]
+type = "console"
+inputs = ["process_logs", "process_network_logs"]
+encoding.codec = "json"

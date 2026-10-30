@@ -1,3 +1,8 @@
+# 1. เปลี่ยน type เป็น "mmdb" สำหรับ DB-IP Lite
+[enrichment_tables.geoip_db]
+type = "mmdb"
+path = "/etc/vector/dbip-city-lite.mmdb"
+
 [sources.api_inbound]
 type = "http_server"
 address = "0.0.0.0:8080"
@@ -22,6 +27,27 @@ raw_event = encode_json(.)
 .src_ip = string(.src_ip) ?? string(.ip) ?? "0.0.0.0"
 .user = string(.user) ?? "anonymous"
 .status_code = int(.status_code) ?? 200
+
+# --- DB-IP Lite GeoIP Enrichment ---
+.src_country_code = ""
+.src_country_name = ""
+.src_city = ""
+.src_latitude = 0.0
+.src_longitude = 0.0
+
+if is_ipv4(.src_ip) {
+    is_private = ip_cidr_contains(["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8", "0.0.0.0/8"], .src_ip) ?? true
+    if !is_private {
+        geo, err = get_enrichment_table_record("geoip_db", {"ip": .src_ip})
+        if err == null {
+            .src_country_code = string(geo.country.iso_code) ?? ""
+            .src_country_name = string(geo.country.names.en) ?? ""
+            .src_city = string(geo.city.names.en) ?? ""
+            .src_latitude = float(geo.location.latitude) ?? 0.0
+            .src_longitude = float(geo.location.longitude) ?? 0.0
+        }
+    }
+}
 
 ts, err = parse_timestamp(.@timestamp, "%Y-%m-%dT%H:%M:%SZ")
 if err != null {
@@ -48,6 +74,28 @@ source = '''
 .severity = int(.severity) ?? 0
 .src_ip = parse_regex(.message, r'src=(?P<ip>[^\s]+)').ip ?? "0.0.0.0"
 .status_code = 200
+
+# --- DB-IP Lite GeoIP Enrichment ---
+.src_country_code = ""
+.src_country_name = ""
+.src_city = ""
+.src_latitude = 0.0
+.src_longitude = 0.0
+
+if is_ipv4(.src_ip) {
+    is_private = ip_cidr_contains(["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8", "0.0.0.0/8"], .src_ip) ?? true
+    if !is_private {
+        geo, err = get_enrichment_table_record("geoip_db", {"ip": .src_ip})
+        if err == null {
+            .src_country_code = string(geo.country.iso_code) ?? ""
+            .src_country_name = string(geo.country.names.en) ?? ""
+            .src_city = string(geo.city.names.en) ?? ""
+            .src_latitude = float(geo.location.latitude) ?? 0.0
+            .src_longitude = float(geo.location.longitude) ?? 0.0
+        }
+    }
+}
+
 if is_null(.timestamp) {
     .timestamp = now()
 }
@@ -58,7 +106,7 @@ if is_null(.timestamp) {
 [sinks.clickhouse_output]
 type = "clickhouse"
 inputs = ["process_logs", "process_network_logs"]
-endpoint = "http://host.docker.internal:8123" 
+endpoint = "http://clickhouse:8123" 
 database = "log_manage_db"
 table = "central_logs"
 auth.strategy = "basic"

@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // 2. ตรวจสอบว่าพบ User หรือไม่
         if (!user) {
             return NextResponse.json(
                 { message: "User not found" },
@@ -38,7 +37,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 4. สร้าง Membership
         const result = await prisma.tenant_memberships.create({
             data: {
                 user_id: user.id,
