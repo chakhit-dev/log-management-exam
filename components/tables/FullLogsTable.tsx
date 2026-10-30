@@ -44,6 +44,9 @@ import { getLogsAction } from "@/app/actions/getLogs"
 import { TenantMembership } from "@/app/actions/getTenants"
 import { useSession } from "next-auth/react"
 import { LogInspectDialog } from "../dialog/LogInspectDialog"
+import { formatThaiTime } from "@/utils/dateFormat"
+
+
 
 export interface LogItem {
     id?: string
@@ -56,13 +59,11 @@ export interface LogItem {
     event_type: string
     severity: string | number
     src_ip: string
-    // --- GeoIP Fields ---
     src_country_code?: string
     src_country_name?: string
     src_city?: string
     src_latitude?: number
     src_longitude?: number
-    // --------------------
     user: string
     host: string
     status_code: number
@@ -80,17 +81,11 @@ export function FullLogsTable({ data }: TenantProps) {
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [error, setError] = useState<string | null>(null)
 
-    // console.log(session)
-    // console.log(data)
-    // console.log(logs)
-
-
     const [memberEmail, setMemberEmail] = useState("")
     const [isAddingMembership, setIsAddingMembership] = useState(false)
     const [membershipError, setMembershipError] = useState<string | null>(null)
     const [membershipSuccess, setMembershipSuccess] = useState<string | null>(null)
     const [isMembershipDialogOpen, setIsMembershipDialogOpen] = useState(false)
-
 
     const [selectedTenant, setSelectedTenant] = useState<string>(
         () => data?.[0]?.tenant_name ?? ""
@@ -100,10 +95,13 @@ export function FullLogsTable({ data }: TenantProps) {
     const [page, setPage] = useState<number>(1)
     const limit = 50
 
-    const fetchLogs = async () => {
+    // ปรับปรุง fetchLogs ให้รับพารามิเตอร์ isBackground เพื่อแยกการโหลดครั้งแรกกับการ Polling เบื้องหลัง
+    const fetchLogs = async (isBackground = false) => {
         if (!selectedTenant) return
 
-        setIsLoading(true)
+        if (!isBackground) {
+            setIsLoading(true)
+        }
         setError(null)
 
         try {
@@ -119,12 +117,14 @@ export function FullLogsTable({ data }: TenantProps) {
             if (res.success && res.data) {
                 setLogs(res.data)
             } else {
-                setError(res.error || "Failed to load logs")
+                if (!isBackground) setError(res.error || "Failed to load logs")
             }
         } catch (err) {
-            setError(err instanceof Error ? err.message : "An error occurred")
+            if (!isBackground) setError(err instanceof Error ? err.message : "An error occurred")
         } finally {
-            setIsLoading(false)
+            if (!isBackground) {
+                setIsLoading(false)
+            }
         }
     }
 
@@ -134,14 +134,26 @@ export function FullLogsTable({ data }: TenantProps) {
         }
     }, [data])
 
+    // Effect สำหรับโหลดข้อมูลใหม่เมื่อมีการเปลี่ยน Tenant, หน้า, คำค้นหา หรือ Severity
     useEffect(() => {
         if (!selectedTenant) return
 
         const timer = setTimeout(() => {
-            fetchLogs()
+            fetchLogs(false) // โหลดแบบปกติ (แสดง loading)
         }, 300)
 
         return () => clearTimeout(timer)
+    }, [selectedTenant, page, searchTerm, selectedSeverity])
+
+    // ✨ เพิ่มส่วน Polling (ดึง Log ใหม่จาก ClickHouse อัตโนมัติทุก 15 วินาที โดยหน้าจอไม่กระพริบ)
+    useEffect(() => {
+        if (!selectedTenant) return
+
+        const intervalId = setInterval(() => {
+            fetchLogs(true) // โหลดแบบ background (ไม่กระพริบ loading)
+        }, 15000)
+
+        return () => clearInterval(intervalId)
     }, [selectedTenant, page, searchTerm, selectedSeverity])
 
     const handleTenantChange = (value: string) => {
@@ -160,9 +172,6 @@ export function FullLogsTable({ data }: TenantProps) {
     }
 
     const handleAddMembership = async (e: React.FormEvent<HTMLFormElement>) => {
-
-        // console.log("call handleAddMembership")
-
         e.preventDefault()
 
         setMembershipError(null)
@@ -210,7 +219,6 @@ export function FullLogsTable({ data }: TenantProps) {
             }
 
             setMembershipSuccess(result.message || "Membership added successfully")
-
             setMemberEmail("")
 
             setTimeout(() => {
@@ -229,7 +237,6 @@ export function FullLogsTable({ data }: TenantProps) {
         }
     }
 
-
     const exportLogsJSON = () => {
         if (logs.length === 0) {
             alert("No logs available to export")
@@ -237,13 +244,10 @@ export function FullLogsTable({ data }: TenantProps) {
         }
 
         const jsonData = JSON.stringify(logs, null, 2)
-
         const blob = new Blob([jsonData], {
             type: "application/json;charset=utf-8"
         })
-
         const url = URL.createObjectURL(blob)
-
         const filename = `logs_${selectedTenant}_${new Date()
             .toISOString()
             .replace(/[:.]/g, "-")}.json`
@@ -257,7 +261,6 @@ export function FullLogsTable({ data }: TenantProps) {
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
     }
-
 
     const getSeverityBadge = (severity: unknown) => {
         let label = String(severity ?? "").toUpperCase()
@@ -415,14 +418,13 @@ export function FullLogsTable({ data }: TenantProps) {
                     )}
 
                     <button
-                        onClick={fetchLogs}
+                        onClick={() => fetchLogs(false)}
                         disabled={isLoading}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-2xs transition-colors hover:bg-slate-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
                     >
                         <RefreshCw className={`h-3.5 w-3.5 text-slate-400 ${isLoading ? "animate-spin" : ""}`} />
                         <span>Refresh</span>
                     </button>
-
 
                     <button
                         onClick={exportLogsJSON}
@@ -432,7 +434,6 @@ export function FullLogsTable({ data }: TenantProps) {
                         <Download className="h-3.5 w-5 text-slate-400" />
                         <span>Export JSON</span>
                     </button>
-
 
                 </div>
             </div>
@@ -485,7 +486,7 @@ export function FullLogsTable({ data }: TenantProps) {
                     <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={10} className="py-12 text-center text-slate-400 dark:text-zinc-500">
+                                <td colSpan={11} className="py-12 text-center text-slate-400 dark:text-zinc-500">
                                     <div className="flex items-center justify-center gap-2">
                                         <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
                                         <span>Searching ClickHouse logs...</span>
@@ -494,7 +495,7 @@ export function FullLogsTable({ data }: TenantProps) {
                             </tr>
                         ) : error ? (
                             <tr>
-                                <td colSpan={10} className="py-12 text-center text-rose-500 dark:text-rose-400">
+                                <td colSpan={11} className="py-12 text-center text-rose-500 dark:text-rose-400">
                                     {error}
                                 </td>
                             </tr>
@@ -508,7 +509,7 @@ export function FullLogsTable({ data }: TenantProps) {
                                         {index}
                                     </td>
                                     <td className="px-4 py-3.5 font-mono text-slate-500 dark:text-zinc-400 whitespace-nowrap">
-                                        {log["@timestamp"] || log.timestamp}
+                                        {formatThaiTime(log["@timestamp"] || log.timestamp)}
                                     </td>
                                     <td className="px-4 py-3.5 font-medium text-slate-700 dark:text-zinc-300">
                                         {log.tenant_name || log.tenant}
@@ -537,23 +538,13 @@ export function FullLogsTable({ data }: TenantProps) {
                                         {getStatusCodeBadge(log.status_code)}
                                     </td>
                                     <td className="px-4 py-3.5 text-right">
-                                        {/* <button
-                                            onClick={() => alert(`Raw log detail:\n${JSON.stringify(log, null, 2)}`)}
-                                            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 shadow-2xs transition-all hover:bg-slate-50 hover:text-slate-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
-                                        >
-                                            <Eye className="h-3 w-3 text-slate-400" />
-                                            <span>Inspect</span>
-                                        </button> */}
-
-                                        
-
                                         <LogInspectDialog data={log} index={index} />
                                     </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={10} className="py-12 text-center text-slate-400 dark:text-zinc-500">
+                                <td colSpan={11} className="py-12 text-center text-slate-400 dark:text-zinc-500">
                                     No log records found matching your query criteria.
                                 </td>
                             </tr>
