@@ -1,6 +1,8 @@
 [sources.api_inbound]
 type = "http_server"
 address = "0.0.0.0:8080"
+path = "/"
+strict_path = false
 decoding.codec = "json"
 framing.method = "bytes"
 
@@ -21,7 +23,11 @@ raw_event = encode_json(.)
 .user = string(.user) ?? "anonymous"
 .status_code = int(.status_code) ?? 200
 
-.@timestamp = now()
+ts, err = parse_timestamp(.@timestamp, "%Y-%m-%dT%H:%M:%SZ")
+if err != null {
+    ts = now()
+}
+.@timestamp = ts
 .raw = raw_event
 '''
 
@@ -42,7 +48,10 @@ source = '''
 .severity = int(.severity) ?? 0
 .src_ip = parse_regex(.message, r'src=(?P<ip>[^\s]+)').ip ?? "0.0.0.0"
 .status_code = 200
-.@timestamp = now()
+if is_null(.timestamp) {
+    .timestamp = now()
+}
+.@timestamp = .timestamp
 .raw = encode_json(.)
 '''
 

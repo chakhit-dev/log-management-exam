@@ -4,3 +4,4 @@ seed-api command
 syslog command
 ./seed-syslog.sh
 
+./seed-main4.sh 100

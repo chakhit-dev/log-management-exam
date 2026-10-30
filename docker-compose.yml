@@ -103,11 +103,29 @@ services:
     networks:
       - app-network
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_web
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - clickhouse
+    networks:
+      - app-network
+
 volumes:
   postgres_data:
   clickhouse_data:
   clickhouse_logs:
   pgadmin_data:
+  grafana_data:
 
 networks:
   app-network:
