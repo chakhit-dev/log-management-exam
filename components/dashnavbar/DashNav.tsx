@@ -3,6 +3,7 @@
 import { BookOpen, ChartColumnBig, Folder, FolderOpen, LayoutDashboard, LogOut, Settings, User, Users } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { DrawerUpload } from '../drawer/upload';
 
 export default function DashNav() {
     const { data: session, status } = useSession();
@@ -38,6 +39,10 @@ export default function DashNav() {
                     <Folder size={16} />
                     <div className='mt-0.5'>Logs</div>
                 </Link>
+
+                {session?.user.systemRole === 'SuperAdmin' && (
+                    <DrawerUpload />
+                )}
 
                 {/* <div className='flex items-center gap-2.5 p-2.5 rounded-lg pl-4 text-neutral-600 hover:bg-black/5 hover:text-black cursor-pointer transition-all'>
                     <User size={16} />

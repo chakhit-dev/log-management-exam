@@ -1,4 +1,3 @@
-# 1. เปลี่ยน type เป็น "mmdb" สำหรับ DB-IP Lite
 [enrichment_tables.geoip_db]
 type = "mmdb"
 path = "/etc/vector/dbip-city-lite.mmdb"
@@ -28,7 +27,6 @@ raw_event = encode_json(.)
 .user = string(.user) ?? "anonymous"
 .status_code = int(.status_code) ?? 200
 
-# --- DB-IP Lite GeoIP Enrichment ---
 .src_country_code = ""
 .src_country_name = ""
 .src_city = ""
@@ -75,7 +73,6 @@ source = '''
 .src_ip = parse_regex(.message, r'src=(?P<ip>[^\s]+)').ip ?? "0.0.0.0"
 .status_code = 200
 
-# --- DB-IP Lite GeoIP Enrichment ---
 .src_country_code = ""
 .src_country_name = ""
 .src_city = ""
