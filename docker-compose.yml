@@ -83,6 +83,7 @@ services:
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - clickhouse_logs:/var/log/clickhouse-server
+      # - /Users/faraday/Git/GitHub/log-management-exam/backups:/var/lib/clickhouse/user_files/backups
     networks:
       - app-network
 
