@@ -663,6 +663,7 @@
 
 # 1. URL ของ HTTP Server
 HTTP_URL="http://localhost:8080/ingest"
+# HTTP_URL="https://log.chronotechx.com/api/ingest"
 
 # 2. พอร์ตของ Network Syslog (UDP)
 SYSLOG_HOST="127.0.0.1"
