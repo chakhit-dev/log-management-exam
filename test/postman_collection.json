@@ -1,0 +1,159 @@
+{
+  "info": {
+    "_postman_id": "17b3f155-0af8-4ec4-8f1b-0dec49bbe550",
+    "name": "New Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "40231771"
+  },
+  "item": [
+    {
+      "name": "Logs",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"user_id\": 1\n}"
+        },
+        "url": {
+          "raw": "https://log.chronotechx.com/api/logs/demoA",
+          "protocol": "https",
+          "host": [
+            "log",
+            "chronotechx",
+            "com"
+          ],
+          "path": [
+            "api",
+            "logs",
+            "demoA"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ingest",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tenant\": \"demoA\",\n  \"source\": \"api\",\n  \"event_type\": \"app_login_failed\",\n  \"user\": \"alice\",\n  \"ip\": \"125.27.146.182\",\n  \"@timestamp\": \"2026-10-30T12:00:00Z\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://log.chronotechx.com/api/ingest",
+          "protocol": "https",
+          "host": [
+            "log",
+            "chronotechx",
+            "com"
+          ],
+          "path": [
+            "api",
+            "ingest"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "createTenant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"id\": 1,\n    \"name\": \"demoA\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://log.chronotechx.com/api/createTenant",
+          "protocol": "https",
+          "host": [
+            "log",
+            "chronotechx",
+            "com"
+          ],
+          "path": [
+            "api",
+            "createTenant"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "createUser",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"t4@gg.com\",\n    \"username\": \"t4\",\n    \"password\": \"zz112233\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://log.chronotechx.com/api/users",
+          "protocol": "https",
+          "host": [
+            "log",
+            "chronotechx",
+            "com"
+          ],
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "addMemberships",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"t1@gg.com\",\n    \"tenant_id\": 1,\n    \"role\": \"Viewer\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://log.chronotechx.com/api/memberships",
+          "protocol": "https",
+          "host": [
+            "log",
+            "chronotechx",
+            "com"
+          ],
+          "path": [
+            "api",
+            "memberships"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
