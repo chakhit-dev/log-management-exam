@@ -29,6 +29,19 @@ cd log-management-exam
 npm install
 ```
 
+ดาวน์โหลด GeoIP
+
+```bash
+curl -L "https://cdn.jsdelivr.net/npm/dbip-city-lite/dbip-city-lite.mmdb.gz" \
+  -o dbip-city-lite.mmdb.gz
+```
+
+unpack
+
+```bash
+gunzip dbip-city-lite.mmdb.gz
+```
+
 ---
 
 ### 2. ตั้งค่าตัวแปรสภาพแวดล้อม (Environment Variables)
